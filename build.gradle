@@ -1,0 +1,82 @@
+plugins {
+	id 'java'
+	id 'war'
+	id 'org.springframework.boot' version '3.2.0'
+	id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.reservas'
+version = '1.0.0'
+
+java {
+	sourceCompatibility = '17'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	providedRuntime
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Spring Boot Starters
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	implementation 'com.mercadopago:sdk-java:2.1.29'
+
+	// MySQL Driver
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// H2 solo para tests
+	testRuntimeOnly 'com.h2database:h2'
+
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// MapStruct (opcional)
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+	// DevTools (opcional)
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// Tomcat como providedRuntime (para WAR)
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+
+	// Test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+bootWar {
+	archiveBaseName = 'api'
+	archiveVersion = ''
+}
+
+// ✅ Task para build de producción
+tasks.register('warProd', War) {
+	dependsOn bootWar
+	doLast {
+		println '✅ WAR generado para PRODUCCIÓN'
+		println '📦 Archivo: build/libs/api.war'
+		println '🔧 Ejecutar con: java -jar -Dspring.profiles.active=prod api.war'
+	}
+}
