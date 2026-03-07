@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface CourtRepository extends JpaRepository<Court, Long> {
     List<Court> findByComplexId(Long complexId);
+    int countByComplexId(Long complexId);
 }

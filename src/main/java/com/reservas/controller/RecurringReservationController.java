@@ -1,10 +1,11 @@
 // src/main/java/com/reservas/controller/RecurringReservationController.java
 package com.reservas.controller;
 
+import com.reservas.dto.request.AddRecurringPaymentRequest;
+import com.reservas.dto.request.AddRecurringProductRequest;
 import com.reservas.dto.request.RecurringExceptionRequest;
 import com.reservas.dto.request.RecurringReservationRequest;
-import com.reservas.dto.response.RecurringReservationResponse;
-import com.reservas.dto.response.ReservationResponse;
+import com.reservas.dto.response.*;
 import com.reservas.service.RecurringReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,28 +26,27 @@ public class RecurringReservationController {
 
     private final RecurringReservationService recurringService;
 
-    /**
-     * Crear reserva fija
-     */
+    // ==================== ENDPOINTS EXISTENTES ====================
+
     @PostMapping
     public ResponseEntity<RecurringReservationResponse> create(
-            @Valid @RequestBody RecurringReservationRequest request) {  // ← Cambio aquí
+            @Valid @RequestBody RecurringReservationRequest request) {
         RecurringReservationResponse response = recurringService.createRecurringReservation(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * Listar reservas fijas del complejo
-     */
     @GetMapping
     public ResponseEntity<List<RecurringReservationResponse>> list() {
         List<RecurringReservationResponse> reservations = recurringService.getComplexRecurringReservations();
         return ResponseEntity.ok(reservations);
     }
 
-    /**
-     * Cancelar un día específico (excepción)
-     */
+    @GetMapping("/{id}")
+    public ResponseEntity<RecurringReservationResponse> getRecurringReservationById(@PathVariable Long id) {
+        RecurringReservationResponse response = recurringService.getRecurringReservationById(id);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/exception")
     public ResponseEntity<Void> cancelSpecificDate(
             @Valid @RequestBody RecurringExceptionRequest request) {
@@ -54,9 +54,6 @@ public class RecurringReservationController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Restaurar un día cancelado
-     */
     @DeleteMapping("/{id}/exception")
     public ResponseEntity<Void> restoreDate(
             @PathVariable Long id,
@@ -65,27 +62,70 @@ public class RecurringReservationController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Cancelar permanentemente
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelPermanently(@PathVariable Long id) {
         recurringService.cancelPermanently(id);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Reactivar reserva cancelada
-     */
     @PostMapping("/{id}/reactivate")
     public ResponseEntity<Void> reactivate(@PathVariable Long id) {
         recurringService.reactivate(id);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<RecurringReservationResponse> getRecurringReservationById(@PathVariable Long id) {
-        RecurringReservationResponse response = recurringService.getRecurringReservationById(id);
+    // ==================== NUEVOS ENDPOINTS - DETALLE POR FECHA ====================
+
+    @GetMapping("/{id}/date/{date}")
+    public ResponseEntity<RecurringDateDetailResponse> getDateDetail(
+            @PathVariable Long id,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        RecurringDateDetailResponse response = recurringService.getRecurringDateDetail(id, date);
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================== NUEVOS ENDPOINTS - PAGOS ====================
+
+    @PostMapping("/{id}/payments")
+    public ResponseEntity<PlayerPaymentResponse> addPayment(
+            @PathVariable Long id,
+            @Valid @RequestBody AddRecurringPaymentRequest request) {
+        PlayerPaymentResponse response = recurringService.addRecurringPayment(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/{id}/payments/{paymentId}")
+    public ResponseEntity<Void> removePayment(
+            @PathVariable Long id,
+            @PathVariable Long paymentId) {
+        recurringService.removeRecurringPayment(id, paymentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ==================== NUEVOS ENDPOINTS - PRODUCTOS ====================
+
+    @PostMapping("/{id}/products")
+    public ResponseEntity<ExtraProductResponse> addProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody AddRecurringProductRequest request) {
+        ExtraProductResponse response = recurringService.addRecurringProduct(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/{id}/products/{productId}")
+    public ResponseEntity<Void> removeProduct(
+            @PathVariable Long id,
+            @PathVariable Long productId) {
+        recurringService.removeRecurringProduct(id, productId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/products/{productId}/pay")
+    public ResponseEntity<ExtraProductResponse> markProductAsPaid(
+            @PathVariable Long id,
+            @PathVariable Long productId,
+            @RequestParam String method) {
+        ExtraProductResponse response = recurringService.markRecurringProductAsPaid(id, productId, method);
         return ResponseEntity.ok(response);
     }
 }

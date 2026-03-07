@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 // src/main/java/com/reservas/entity/Reservation.java
 @Entity
@@ -92,6 +94,15 @@ public class Reservation {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // 🆕 Relaciones para pagos y productos
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PlayerPayment> playerPayments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ExtraProduct> extraProducts = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -102,6 +113,38 @@ public class Reservation {
         if (createdByAdmin == null) {
             createdByAdmin = false;
         }
+    }
+
+    // 🆕 Métodos de utilidad
+    public BigDecimal getProductsTotal() {
+        return extraProducts.stream()
+                .map(ExtraProduct::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getGrandTotal() {
+        return price.add(getProductsTotal());
+    }
+
+    public BigDecimal getTotalPaid() {
+        BigDecimal playerPaymentsTotal = playerPayments.stream()
+                .map(PlayerPayment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal paidProductsTotal = extraProducts.stream()
+                .filter(ExtraProduct::getPaid)
+                .map(ExtraProduct::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return playerPaymentsTotal.add(paidProductsTotal);
+    }
+
+    public BigDecimal getTotalPending() {
+        return getGrandTotal().subtract(getTotalPaid()).max(BigDecimal.ZERO);
+    }
+
+    public boolean isFullyPaid() {
+        return getTotalPending().compareTo(BigDecimal.ZERO) <= 0;
     }
 
     @PreUpdate
