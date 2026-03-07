@@ -39,7 +39,7 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final PlayerPaymentRepository playerPaymentRepository;
     private final ExtraProductRepository extraProductRepository;
-    private final CashRegisterService cashRegisterService; // 🆕 AGREGAR
+    private final CashRegisterService cashRegisterService;
 
     // ==================== MÉTODOS EXISTENTES ====================
 
@@ -234,7 +234,7 @@ public class ReservationService {
                 .amount(request.getAmount())
                 .method(method)
                 .paidAt(LocalDateTime.now())
-                .createdBy(currentUser) // 🆕 Para saber quién registró
+                .createdBy(currentUser)
                 .build();
 
         payment = playerPaymentRepository.save(payment);
@@ -269,11 +269,8 @@ public class ReservationService {
                     extraProductRepository.save(product);
                     coveredAmount = newCoveredAmount;
 
-                    // 🆕 REGISTRAR PRODUCTO EN CAJA SI ES EFECTIVO
-                    if (method == PaymentMethod.CASH) {
-                        String info = buildReservationInfo(reservation);
-                        cashRegisterService.registerAutomaticProductSale(product, info);
-                    }
+                    // ✅ FIX: NO registrar en caja - ya está incluido en el pago del jugador
+                    log.info("✅ Producto {} marcado como pagado automáticamente (excedente)", product.getName());
                 } else {
                     break;
                 }
@@ -282,7 +279,7 @@ public class ReservationService {
 
         updateReservationStatusIfFullyPaid(reservation);
 
-        // 🆕 REGISTRAR EN CAJA SI ES EFECTIVO
+        // Registrar en caja si es efectivo
         if (method == PaymentMethod.CASH) {
             String info = buildReservationInfo(reservation);
             cashRegisterService.registerAutomaticPayment(payment, info);
@@ -309,7 +306,7 @@ public class ReservationService {
             throw new BadRequestException("El pago no pertenece a esta reserva");
         }
 
-        // 🆕 ELIMINAR DE CAJA SI ERA EFECTIVO
+        // Eliminar de caja si era efectivo
         if (payment.getMethod() == PaymentMethod.CASH) {
             cashRegisterService.removeAutomaticPayment(paymentId);
         }
@@ -368,7 +365,7 @@ public class ReservationService {
             throw new BadRequestException("El producto no pertenece a esta reserva");
         }
 
-        // 🆕 ELIMINAR DE CAJA SI ESTABA PAGADO EN EFECTIVO
+        // Eliminar de caja si estaba pagado en efectivo
         if (product.getPaid() && product.getPaymentMethod() == PaymentMethod.CASH) {
             cashRegisterService.removeAutomaticProductSale(productId);
         }
@@ -413,7 +410,7 @@ public class ReservationService {
 
         updateReservationStatusIfFullyPaid(reservation);
 
-        // 🆕 REGISTRAR EN CAJA SI ES EFECTIVO
+        // ✅ Registrar en caja SOLO cuando se paga manualmente
         if (paymentMethod == PaymentMethod.CASH) {
             String info = buildReservationInfo(reservation);
             cashRegisterService.registerAutomaticProductSale(product, info);
@@ -450,7 +447,6 @@ public class ReservationService {
         }
     }
 
-    // 🆕 HELPER PARA GENERAR INFO DE RESERVA
     private String buildReservationInfo(Reservation reservation) {
         return String.format("%s - %s - %s",
                 reservation.getCourt().getName(),

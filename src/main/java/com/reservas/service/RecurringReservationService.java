@@ -528,12 +528,7 @@ public class RecurringReservationService {
                     extraProductRepository.save(product);
                     covered = covered.add(product.getTotalPrice());
 
-                    // 🆕 REGISTRAR EN CAJA SI ES EFECTIVO
-                    if (paymentMethod == PaymentMethod.CASH) {
-                        String info = buildRecurringInfo(recurring, date);
-                        cashRegisterService.registerAutomaticProductSale(product, info);
-                    }
-
+                    // ✅ FIX: NO registrar en caja - ya está incluido en el pago del jugador
                     log.info("✅ Producto {} marcado como pagado automáticamente (excedente)", product.getName());
                 } else {
                     break;
