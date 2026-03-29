@@ -43,8 +43,8 @@ public class CashRegisterService {
         LocalDate today = LocalDate.now();
 
         // Verificar si ya existe caja para hoy
-        if (cashRegisterRepository.existsByComplexIdAndDate(complexId, today)) {
-            throw new BadRequestException("Ya existe una caja abierta para hoy");
+        if (cashRegisterRepository.existsByComplexIdAndStatus(complexId, CashRegisterStatus.OPEN)) {
+            throw new BadRequestException("Ya existe una caja abierta. Cerrala primero antes de abrir una nueva.");
         }
 
         CashRegister cashRegister = CashRegister.builder()
@@ -256,7 +256,7 @@ public class CashRegisterService {
         Long complexId = getComplexId(currentUser);
 
         CashRegister cashRegister = cashRegisterRepository
-                .findByComplexIdAndStatus(complexId, CashRegisterStatus.OPEN)
+                .findFirstByComplexIdAndStatusOrderByIdDesc(complexId, CashRegisterStatus.OPEN)
                 .orElseThrow(() -> new BadRequestException("No hay caja abierta para cerrar"));
 
         BigDecimal expectedAmount = cashRegister.calculateExpectedAmount();
@@ -364,7 +364,7 @@ public class CashRegisterService {
         Long complexId = getComplexId(currentUser);
 
         CashRegister cashRegister = cashRegisterRepository
-                .findByComplexIdAndStatus(complexId, CashRegisterStatus.OPEN)
+                .findFirstByComplexIdAndStatusOrderByIdDesc(complexId, CashRegisterStatus.OPEN)
                 .orElseThrow(() -> new BadRequestException(
                         "No hay caja abierta. Abrí la caja primero."));
 
@@ -435,7 +435,7 @@ public class CashRegisterService {
         }
 
         CashRegister cashRegister = cashRegisterRepository
-                .findByComplexIdAndStatus(complexId, CashRegisterStatus.OPEN)
+                .findFirstByComplexIdAndStatusOrderByIdDesc(complexId, CashRegisterStatus.OPEN)
                 .orElse(null);
 
         if (cashRegister == null) {
@@ -476,7 +476,7 @@ public class CashRegisterService {
         }
 
         CashRegister cashRegister = cashRegisterRepository
-                .findByComplexIdAndStatus(complexId, CashRegisterStatus.OPEN)
+                .findFirstByComplexIdAndStatusOrderByIdDesc(complexId, CashRegisterStatus.OPEN)
                 .orElse(null);
 
         if (cashRegister == null) {

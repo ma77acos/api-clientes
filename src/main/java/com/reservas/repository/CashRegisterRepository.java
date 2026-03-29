@@ -17,7 +17,14 @@ public interface CashRegisterRepository extends JpaRepository<CashRegister, Long
 
     Optional<CashRegister> findByComplexIdAndDate(Long complexId, LocalDate date);
 
-    Optional<CashRegister> findByComplexIdAndStatus(Long complexId, CashRegisterStatus status);
+    // ❌ ESTE MÉTODO FALLA SI HAY DUPLICADOS
+    // Optional<CashRegister> findByComplexIdAndStatus(Long complexId, CashRegisterStatus status);
+
+    // ✅ USAR ESTE EN SU LUGAR (retorna el más reciente si hay duplicados)
+    Optional<CashRegister> findFirstByComplexIdAndStatusOrderByIdDesc(Long complexId, CashRegisterStatus status);
+
+    // ✅ AGREGAR: para validar si ya hay caja abierta
+    boolean existsByComplexIdAndStatus(Long complexId, CashRegisterStatus status);
 
     @Query("SELECT cr FROM CashRegister cr WHERE cr.complex.id = :complexId " +
             "ORDER BY cr.date DESC")
