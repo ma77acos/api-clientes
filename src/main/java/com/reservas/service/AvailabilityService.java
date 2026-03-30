@@ -61,11 +61,15 @@ public class AvailabilityService {
                 .map(AvailabilitySlot::getTime)
                 .collect(Collectors.toSet());
 
-        // Reservas individuales activas
+        // ✅ Reservas activas (incluyendo PAYED)
         List<Reservation> activeReservations = reservationRepository
                 .findByCourtIdAndDateAndStatusIn(
                         courtId, date,
-                        List.of(ReservationStatus.CONFIRMED, ReservationStatus.PENDING)
+                        List.of(
+                                ReservationStatus.CONFIRMED,
+                                ReservationStatus.PENDING,
+                                ReservationStatus.PAYED  // ← Agregar esto
+                        )
                 );
         Set<LocalTime> bookedTimes = activeReservations.stream()
                 .map(Reservation::getTime)
@@ -75,7 +79,7 @@ public class AvailabilityService {
         List<SlotResponse> slotResponses = new ArrayList<>();
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        for (LocalTime time : slots) {  // ← Usar slots dinámicos
+        for (LocalTime time : slots) {
             SlotStatus status;
 
             if (blockedTimes.contains(time)) {
