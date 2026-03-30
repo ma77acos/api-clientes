@@ -2,6 +2,7 @@
 package com.reservas.controller;
 
 import com.reservas.dto.request.AdminReservationRequest;
+import com.reservas.dto.response.DashboardStatsResponse;
 import com.reservas.dto.response.ReservationResponse;
 import com.reservas.enums.ReservationStatus;
 import com.reservas.service.AdminReservationService;
@@ -64,5 +65,15 @@ public class AdminController {
     public ResponseEntity<Void> cancelReservation(@PathVariable Long id) {
         adminReservationService.cancelReservation(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Obtener estadísticas del día para el dashboard
+     */
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<DashboardStatsResponse> getDashboardStats(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        DashboardStatsResponse stats = adminReservationService.getDashboardStats(date);
+        return ResponseEntity.ok(stats);
     }
 }

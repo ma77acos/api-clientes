@@ -47,6 +47,15 @@ public class User implements UserDetails {
     @Column(name = "refresh_token", length = 500)
     private String refreshToken;
 
+    @Column(name = "password_reset_token", unique = true)
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_token_expiry")
+    private LocalDateTime passwordResetTokenExpiry;
+
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "complex_id")
     private Complex complex;

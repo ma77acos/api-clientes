@@ -36,4 +36,6 @@ public class ReservationResponse {
 
     private Boolean isRecurring;
     private Long recurringId;
+
+    private Boolean isFullyPaid;
 }

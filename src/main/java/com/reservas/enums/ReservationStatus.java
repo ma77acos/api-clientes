@@ -3,5 +3,6 @@ package com.reservas.enums;
 public enum ReservationStatus {
     PENDING,
     CONFIRMED,
-    CANCELLED
+    CANCELLED,
+    PAYED
 }
