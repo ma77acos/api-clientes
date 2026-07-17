@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local overrides (opcional; application-local.properties del repo es el de Windows) ###
+.env
+.env.local
+.env.*.local
+

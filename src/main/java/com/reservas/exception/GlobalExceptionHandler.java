@@ -22,24 +22,6 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
-    public ResponseEntity<ErrorResponse> handleIncorrectResultSize(
-            IncorrectResultSizeDataAccessException ex,
-            HttpServletRequest request) {
-
-        // ← PON BREAKPOINT AQUÍ (click en el margen izquierdo de esta línea)
-        logger.error("❌ DUPLICADOS ENCONTRADOS");
-        logger.error("Endpoint: {} {}", request.getMethod(), request.getRequestURI());
-        logger.error("Exception completa:", ex);
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                "Se encontraron registros duplicados en la base de datos",
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -80,6 +62,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
+    @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleIncorrectResultSize(
+            IncorrectResultSizeDataAccessException ex,
+            HttpServletRequest request) {
+
+        logger.error("Datos duplicados en {}: {} {}",
+                request.getRequestURI(), request.getMethod(), ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Datos duplicados encontrados: " + ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
@@ -99,9 +97,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        logger.error("❌ ERROR GENÉRICO:", ex);
-
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
+        logger.error("Error en {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Error interno del servidor",
@@ -110,6 +107,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
-    // Clase interna para respuesta de error
     public record ErrorResponse(int status, String message, LocalDateTime timestamp) {}
 }

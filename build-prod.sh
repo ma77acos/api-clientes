@@ -1,21 +1,18 @@
 #!/bin/bash
+# Build JAR de producción (mismo artefacto que deploy-prd.sh)
+set -e
 
-echo "🚀 Building para PRODUCCIÓN..."
+echo "🚀 Building JAR para PRODUCCIÓN..."
 
-# Limpiar
-./gradlew clean
+./gradlew clean jarProd
 
-# Build con perfil prod
-SPRING_PROFILES_ACTIVE=prod ./gradlew bootWar
-
-# Verificar
-if [ -f "build/libs/api.war" ]; then
-    echo "✅ Build exitoso!"
-    echo "📦 Archivo: build/libs/api.war"
-    echo ""
-    echo "Para ejecutar:"
-    echo "  java -jar -Dspring.profiles.active=prod build/libs/api.war"
+if [ -f "build/libs/turnos-control.jar" ]; then
+  echo "✅ Build exitoso!"
+  echo "📦 Archivo: build/libs/turnos-control.jar"
+  echo ""
+  echo "Para ejecutar localmente con perfil prod:"
+  echo "  java -jar -Dspring.profiles.active=prod build/libs/turnos-control.jar"
 else
-    echo "❌ Error en el build"
-    exit 1
+  echo "❌ Error en el build"
+  exit 1
 fi

@@ -10,13 +10,13 @@ version = '1.0.0'
 
 java {
 	sourceCompatibility = '17'
+	targetCompatibility = '17'
 }
 
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
-	providedRuntime
 }
 
 repositories {
@@ -29,6 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
 	implementation 'com.mercadopago:sdk-java:2.1.29'
 
@@ -47,18 +48,20 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	// ✅ Spring Boot Starter Mail
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
-
-	// MapStruct (opcional)
+	// MapStruct
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-	// DevTools (opcional)
+	// DevTools
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	// Tomcat como providedRuntime (para WAR)
-	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	// Tomcat embebido en local/JAR; provided solo si se pide WAR para Tomcat externo (-Pprod)
+	if (project.hasProperty('prod')) {
+		providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	} else {
+		implementation 'org.springframework.boot:spring-boot-starter-tomcat'
+	}
 
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -69,17 +72,42 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-bootWar {
-	archiveBaseName = 'api'
+tasks.named('bootWar') {
+	archiveBaseName = 'turnos-control'
 	archiveVersion = ''
+	dependsOn test
 }
 
-// ✅ Task para build de producción
-tasks.register('warProd', War) {
-	dependsOn bootWar
+tasks.named('bootJar') {
+	enabled = true
+	archiveBaseName = 'turnos-control'
+	archiveVersion = ''
+	dependsOn test
+}
+
+bootRun {
+	jvmArgs = [
+		'-Djava.awt.headless=true',
+		'-Dfile.encoding=UTF-8',
+		'-Dspring.output.ansi.enabled=ALWAYS'
+	]
+}
+
+// ==================== Tareas personalizadas ====================
+
+tasks.register('warProd') {
+	dependsOn test, bootWar
 	doLast {
 		println '✅ WAR generado para PRODUCCIÓN'
-		println '📦 Archivo: build/libs/api.war'
-		println '🔧 Ejecutar con: java -jar -Dspring.profiles.active=prod api.war'
+		println '📦 Archivo: build/libs/turnos-control.war'
+	}
+}
+
+tasks.register('jarProd') {
+	dependsOn test, bootJar
+	doLast {
+		println '✅ JAR generado para PRODUCCIÓN'
+		println '📦 Archivo: build/libs/turnos-control.jar'
+		println '🔧 Ejecutar con: java -jar -Dspring.profiles.active=prod build/libs/turnos-control.jar'
 	}
 }

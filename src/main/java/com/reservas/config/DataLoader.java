@@ -24,13 +24,14 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // ✅ Solo cargar datos si la BD está vacía
-        if (userRepository.count() > 0) {
-            log.info("⏭️ Datos ya cargados, saltando DataLoader");
+        // âœ… Solo cargar datos si la BD estÃ¡ vacÃ­a
+        /*
+    	if (userRepository.count() > 0) {
+            log.info("â�­ï¸� Datos ya cargados, saltando DataLoader");
             return;
         }
 
-        log.info("📦 Cargando datos de prueba...");
+        log.info("ðŸ“¦ Cargando datos de prueba...");
 
         // Crear User Super Admin
         User adminUser = User.builder()
@@ -57,7 +58,7 @@ public class DataLoader implements CommandLineRunner {
                 .name("Complejo Sunset Padel")
                 .city("Necochea")
                 .description("Complejo premium con 3 canchas sinteticas")
-                .address("Calle 46 °3644 e/ 73 y 75")
+                .address("Calle 46 Â°3644 e/ 73 y 75")
                 .phone("+5492262569214")
                 .rating(new BigDecimal("4.8"))
                 .imageUrl("https://srvprod.dondejuegoapp.com/api/imagenes/complejo-478/2.jpeg?1771535072581")
@@ -204,9 +205,10 @@ public class DataLoader implements CommandLineRunner {
 
 
 
-        log.info("✅ Datos de prueba cargados correctamente");
-        log.info("📧 Usuario Business: ma77acos@gmail.com / 123456");
-        log.info("📧 Usuario Player: player@test.com / 123456");
-        log.info("📧 Usuario Admin: admin@test.com / admin123");
+        log.info("âœ… Datos de prueba cargados correctamente");
+        log.info("ðŸ“§ Usuario Business: ma77acos@gmail.com / 123456");
+        log.info("ðŸ“§ Usuario Player: player@test.com / 123456");
+        log.info("ðŸ“§ Usuario Admin: admin@test.com / admin123");
+        */
     }
 }
